@@ -589,7 +589,7 @@ var io=('IntersectionObserver' in window)?new IntersectionObserver(function(es){
 function reveal(){$$('.rv:not(.in)').forEach(function(el){if(io)io.observe(el);else el.classList.add('in')})}
 
 /* ===== 메뉴 ===== */
-var MENU=[{r:'home',t:'홈'},{r:'about',t:'소개'},{r:'programs',t:'강의 분야'},{r:'record',t:'강의 실적'},{r:'mindmap',t:'직무 마인드맵',href:'automotive-sales-mindmap.html'},{r:'contact',t:'문의'}];
+var MENU=[{r:'home',t:'홈'},{r:'about',t:'소개'},{r:'programs',t:'강의 분야'},{r:'record',t:'강의 실적'},{r:'mindmap',t:'직무 마인드맵',href:'automotive-sales-mindmap.html'},{r:'flipbook',t:'자기소개서 플립북',href:'resume-flipbook.html'},{r:'contact',t:'문의'}];
 var ROUTES=MENU.filter(function(o){return !o.href}).map(function(o){return o.r});
 function renderMenu(){
   $('#menu').innerHTML=MENU.map(function(o){return '<a href="'+(o.href||'#/'+o.r)+'" data-r="'+o.r+'">'+esc(o.t)+'</a>'}).join('');

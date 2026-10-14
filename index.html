@@ -87,6 +87,15 @@ ul,ol{list-style:none}
 .hero-title em{font-style:normal;color:var(--accent)}
 .hero-sub{margin-top:32px;font-size:16px;line-height:1.9;color:var(--ink-2);max-width:32em}
 .hero-sub b{color:var(--ink);font-weight:600}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:clamp(32px,4vw,64px);align-items:center}
+.hero-video{display:flex;flex-direction:column;gap:12px}
+.hero-video .frame{position:relative;width:100%;aspect-ratio:16/9;border:1px solid var(--line);background:#fff;overflow:hidden}
+.hero-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+.hero-video .cap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.hero-video .cap a{color:var(--ink-2)}
+.hero-video .cap a:hover{color:var(--accent)}
+.hero-grid .hero-title{font-size:clamp(44px,5.2vw,86px)}
+@media(max-width:1024px){.hero-grid{grid-template-columns:minmax(0,1fr)}}
 .hero-foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:clamp(56px,9vh,96px)}
 
 /* ===== 메인 섹션 ===== */
@@ -264,11 +273,19 @@ select.inp{background:linear-gradient(45deg,transparent 50%,var(--ink) 50%) righ
   <div class="hero">
     <div class="wrap">
       <span class="label">Career · Networking · People</span>
+      <div class="hero-grid">
+      <div class="hero-text">
       <h1 class="hero-title">사람의 가능성을<br><em>설계</em>합니다</h1>
       <p class="hero-sub"><b>취업·진로·AI 교육 강사 이미영</b>입니다.<br>대학·공공기관·기업과 함께 취업캠프, 생성형 AI 교육, 자기소개서·면접 코칭을 기획하고 직접 강의합니다.</p>
       <div class="btns">
         <a href="#/programs" class="btn btn-fill">강의 분야 보기</a>
         <a href="#/contact" class="btn btn-line">강의 의뢰하기</a>
+      </div>
+      </div>
+      <div class="hero-video">
+        <div class="frame"><iframe src="quest.html?embed" title="취업 퀘스트 영상" loading="lazy" allow="autoplay; fullscreen" allowfullscreen></iframe></div>
+        <div class="cap"><span class="label">취업 퀘스트 · 1분 10초</span><a class="label" href="quest.html" target="_blank" rel="noopener">크게 보기</a></div>
+      </div>
       </div>
       <div class="hero-foot"><span class="label">CNP교육컨설팅 대표 · Busan, Korea</span><span class="label">Since 2019</span></div>
     </div>

@@ -1,0 +1,3 @@
+# Local backend setup includes the owner's administrator email.
+supabase-admin-setup.sql
+SUPABASE-SETUP.md

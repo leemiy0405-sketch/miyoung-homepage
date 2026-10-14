@@ -318,6 +318,7 @@ select.inp{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/20
     <a href="#/home" class="logo" aria-label="온결건축 홈으로">ONGYEOL<i>/</i>STUDIO</a>
     <nav class="menu" id="menu" aria-label="주 메뉴"></nav>
     <div class="nav-side">
+      <button class="nav-auth" id="navAdmin" data-act="admin-entry" type="button" hidden>관리자</button>
       <button class="nav-auth" id="navAuth" data-act="auth" type="button">LOGIN</button>
       <button class="burger" id="burger" data-act="burger" type="button" aria-label="메뉴 열기" aria-expanded="false" aria-controls="drawer"><span></span><span></span></button>
     </div>
@@ -327,6 +328,7 @@ select.inp{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/20
   <nav id="drawerMenu" aria-label="모바일 메뉴"></nav>
   <div class="drawer-foot">
     <span class="js-phone">051-000-0000</span>
+    <button class="tlink" id="drawerAdmin" data-act="admin-entry" type="button" hidden>관리자</button>
     <button class="tlink" id="drawerAuth" data-act="auth" type="button">LOGIN</button>
   </div>
 </div>
@@ -631,10 +633,9 @@ select.inp{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/20
   <div class="phead wrap">
     <button class="back" data-act="back" type="button"><i class="ar l"></i>이전으로</button>
     <div class="adm-bar">
-      <div><span class="label">Admin</span><h1 class="ptitle">관리자 화면</h1></div>
+      <div><span class="label">Admin</span><h1 class="ptitle">회원 관리</h1></div>
       <div class="adm-act">
-        <button class="btn btn-line" data-act="reset" type="button">데모 초기화</button>
-        <button class="btn btn-line" data-act="admin-out" type="button">관리자 나가기</button>
+        <button class="btn btn-line" data-act="admin-out" type="button">로그아웃</button>
       </div>
     </div>
   </div>
@@ -655,7 +656,6 @@ select.inp{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/20
   <div class="wrap foot-bot">
     <span>© 2026 ONGYEOL STUDIO. All rights reserved.</span>
     <span class="foot-tools">
-      <button type="button" data-act="reset">데모 초기화</button>
       <button type="button" data-act="admin-entry">관리자</button>
     </span>
   </div>
@@ -677,14 +677,16 @@ select.inp{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/20
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script src="supabase-config.js"></script>
+<script src="supabase-auth.js"></script>
 <script>
 (function(){
 'use strict';
 
 /* ===== 설정: 실제 운영 시 바꿀 값 ===== */
-var ADMIN_PW = '1234';            // 관리자 비밀번호 (실서버에서는 서버 쪽 인증으로 바꾸세요)
 var KAKAO_URL = '';               // 카카오톡 채널 채팅 주소
-var KEY = 'ongyeol_demo_v1', SKEY = 'ongyeol_session_v1';
+var KEY = 'ongyeol_demo_v1';
 
 /* ===== 유틸 ===== */
 function $(s,r){return (r||document).querySelector(s)}
@@ -732,20 +734,18 @@ function seed(){
       {id:'r2',name:'한서연',phone:'010-6612-0453',date:addDays(4),time:'10:00',people:'3명',way:'현장 방문',memo:'기장 토지 현장',status:'확정'},
       {id:'r1',name:'오준석',phone:'010-4402-9128',date:addDays(7),time:'16:00',people:'1명',way:'화상 상담',memo:'',status:'확정 대기'}
     ],
-    members:[
-      {id:'m1',name:'김서윤',userid:'demo',pw:'demo1234',email:'demo@ongyeol.example',joined:addDays(-40)},
-      {id:'m2',name:'박지훈',userid:'jihoon82',pw:'pass1234',email:'jihoon@example.com',joined:addDays(-12)},
-      {id:'m3',name:'이수진',userid:'sujin.lee',pw:'pass1234',email:'sujin@example.com',joined:addDays(-3)}
-    ],
+    members:[],
     stats:{visitors:1284,monthInq:28,conv:'18.4%',monthly:[14,19,17,23,25]}
   };
 }
 function load(){try{var r=sGet(KEY);if(r){var o=JSON.parse(r);if(o&&o.v===1)return o}}catch(e){}var s=seed();sSet(KEY,JSON.stringify(s));return s}
 var D=load();
 if(D.copy&&D.copy.heroL1==='Spaces that'&&D.copy.heroL2==='age well.'){D.copy.heroL1='이미영의';D.copy.heroL2='홈페이지';sSet(KEY,JSON.stringify(D))}
-var S=(function(){try{var r=JSON.parse(sGet(SKEY)||'null');if(r)return r}catch(e){}return {user:null,admin:false}})();
+// Retire browser-stored demo credentials and never trust the old admin flag.
+D.members=[]; sSet(KEY,JSON.stringify(D)); sSet('ongyeol_session_v1','{}');
+var S={user:null,admin:false,ready:false};
+var authService=window.MiyoungAuth, adminRequested=false, authError=null;
 function save(){if(!sSet(KEY,JSON.stringify(D))){toast('저장 공간이 부족합니다. 갤러리 사진 수를 줄여 주세요.');return false}return true}
-function saveS(){sSet(SKEY,JSON.stringify(S))}
 
 /* ===== 토스트 ===== */
 var tt;
@@ -894,8 +894,11 @@ function renderMenu(){
   $('#footNav').innerHTML=items.map(function(o){return '<a href="#/'+o.r+'">'+esc(o.t)+'</a>'}).join('');
 }
 function renderAuth(){
-  var t=S.user?(S.user.name+' 님 · 로그아웃'):'LOGIN';
+  var name=S.user?String(S.user.user_metadata&&S.user.user_metadata.name||S.user.email||'회원'):'';
+  var t=S.user?(name+' 님 · 로그아웃'):'로그인';
   $('#navAuth').textContent=t; $('#drawerAuth').textContent=t;
+  $('#navAuth').disabled=!S.ready; $('#drawerAuth').disabled=!S.ready;
+  $('#navAdmin').hidden=!S.admin; $('#drawerAdmin').hidden=!S.admin;
 }
 function renderCopy(){
   $('#heroL1').textContent=D.copy.heroL1; $('#heroL2').textContent=D.copy.heroL2; $('#heroSub').textContent=D.copy.heroSub;
@@ -909,7 +912,7 @@ var cur='home', stack=[location.hash||'#/home'];
 function parse(){var h=location.hash.replace(/^#\/?/,'').split('/');return {p:h[0]||'home',a:h[1]||''}}
 function route(){
   var r=parse(),p=r.p;
-  if(p==='admin'){ if(!S.admin){history.replaceState(null,'','#/home');p='home';askAdmin()} }
+  if(p==='admin'){ if(!S.ready){adminRequested=true;p='home'} else if(!S.admin){history.replaceState(null,'','#/home');p='home';askAdmin()} }
   else if(ROUTES.indexOf(p)<0)p='home';
   cur=p;
   $$('.page').forEach(function(el){el.hidden=el.dataset.page!==p});
@@ -980,7 +983,7 @@ function setTab(t,fromRoute){
   $$('.cpanel').forEach(function(f){f.hidden=f.dataset.panel!==t});
   if(!fromRoute){var h='#/contact/'+t;history.replaceState(null,'',h);stack[stack.length-1]=h}
   if(t==='estimate')calc();
-  if(S.user){$$('.cpanel [name="name"]').forEach(function(i){if(!i.value)i.value=S.user.name})}
+  if(S.user){$$('.cpanel [name="name"]').forEach(function(i){if(!i.value)i.value=String(S.user.user_metadata&&S.user.user_metadata.name||'')})}
 }
 function renderTimes(){$('#timeChips').innerHTML=TIMES.map(function(t){return '<button type="button" class="chip'+(t===selTime?' on':'')+'" data-act="time" data-v="'+t+'">'+t+'</button>'}).join('')}
 
@@ -1017,20 +1020,70 @@ function closeModal(){var m=$('#modal');if(m.hidden)return;m.hidden=true;$('#mod
 
 function openAuth(mode){
   var login=mode!=='signup';
-  openModal('<span class="label">Members</span><h2 class="h2 sm">'+(login?'로그인':'회원가입')+'</h2>'+
+  openModal('<span class="label">'+(adminRequested?'Admin':'Members')+'</span><h2 class="h2 sm">'+(login?'로그인':'회원가입')+'</h2>'+
     '<div class="tabs sm"><button type="button" data-act="auth-tab" data-m="login" class="'+(login?'on':'')+'">로그인</button><button type="button" data-act="auth-tab" data-m="signup" class="'+(login?'':'on')+'">회원가입</button></div>'+
-    (login
-      ?'<button class="btn btn-fill full" type="button" data-act="demo-login">체험 계정으로 바로 로그인</button><p class="hint">발표용 체험 계정(김서윤)으로 바로 들어갑니다.</p><div class="or">또는 직접 입력</div>'+
-       '<form id="f-login" novalidate><label class="field"><span>아이디</span><input class="inp" name="id" autocomplete="username" placeholder="demo"></label><label class="field"><span>비밀번호</span><input class="inp" type="password" name="pw" autocomplete="current-password" placeholder="demo1234"></label><button class="btn btn-line full" type="submit">로그인</button></form>'
-      :'<form id="f-signup" novalidate><label class="field"><span>이름</span><input class="inp" name="name" autocomplete="name"></label><label class="field"><span>아이디</span><input class="inp" name="id" autocomplete="username"></label><label class="field"><span>이메일</span><input class="inp" type="email" name="email" autocomplete="email"></label><label class="field"><span>비밀번호 (4자 이상)</span><input class="inp" type="password" name="pw" autocomplete="new-password"></label><button class="btn btn-fill full" type="submit">가입하기</button></form>'));
+    '<form id="'+(login?'f-login':'f-signup')+'" style="margin-top:24px">'+
+    (login?'':'<label class="field"><span>이름</span><input class="inp" name="name" autocomplete="name" maxlength="80" required></label>')+
+    '<label class="field"><span>이메일</span><input class="inp" type="email" name="email" autocomplete="username" maxlength="254" required></label>'+
+    '<label class="field"><span>비밀번호'+(login?'':' (8자 이상)')+'</span><input class="inp" type="password" name="pw" autocomplete="'+(login?'current-password':'new-password')+'" '+(login?'':'minlength="8" ')+'required></label>'+
+    '<p id="authFeedback" class="hint" role="status" aria-live="polite">'+esc(authError||(!login?'가입 후 이메일 인증을 완료해 주세요.':''))+'</p>'+
+    '<button class="btn btn-fill full" type="submit">'+(login?'로그인':'가입하기')+'</button></form>');
 }
-function loginAs(m){S.user={name:m.name,userid:m.userid};saveS();renderAuth();closeModal();toast(m.name+' 님, 반갑습니다.')}
 function askAdmin(){
-  openModal('<span class="label">Admin</span><h2 class="h2 sm">관리자 모드</h2><form id="f-admin" style="margin-top:28px" novalidate><label class="field"><span>관리자 비밀번호</span><input class="inp" type="password" name="pw" autocomplete="off" placeholder="비밀번호 4자리"></label><button class="btn btn-fill full" type="submit">들어가기</button></form><p class="hint"><button type="button" class="tlink" data-act="admin-fill" style="font-size:11px">체험용 비밀번호 넣기</button></p>');
+  adminRequested=true;
+  if(!S.ready)return toast('로그인 상태를 확인하고 있습니다.');
+  if(S.admin){location.hash='#/admin';return}
+  if(S.user){adminRequested=false;toast(authError||'이 계정에는 관리자 권한이 없습니다.');return}
+  openAuth('login');
+}
+function authStateChanged(state){
+  var previousId=S.user&&S.user.id;
+  S={user:state.user,admin:state.admin,ready:state.ready};authError=state.error;
+  renderAuth();
+  if(!S.admin||previousId!==(S.user&&S.user.id)){
+    ++memberRequest; $('#admBody').textContent=''; $('#admTabs').textContent='';
+    $('.page[data-page="admin"]').hidden=true;
+  }
+  if(!S.ready)return;
+  if(S.admin&&adminRequested){
+    adminRequested=false;closeModal();
+    if(location.hash==='#/admin')route();else location.hash='#/admin';
+  }else if(location.hash==='#/admin')route();
+  if(S.user&&adminRequested&&!S.admin){adminRequested=false;closeModal();toast(state.error||'이 계정에는 관리자 권한이 없습니다.')}
+}
+async function submitAuth(f,signup){
+  if(f.dataset.busy)return;
+  var email=val(f,'email'),password=f.querySelector('[name="pw"]').value;
+  if(!/^\S+@\S+\.\S+$/.test(email))return;
+  if(signup&&(!val(f,'name')||password.length<8))return;
+  f.dataset.busy='1';
+  var button=f.querySelector('[type="submit"]'),feedback=f.querySelector('#authFeedback');
+  button.disabled=true; feedback.textContent='처리 중입니다.';
+  try{
+    if(signup){
+      var result=await authService.signUp(val(f,'name'),email,password);
+      if(result.confirmationRequired){
+        f.querySelector('[name="pw"]').value='';
+        feedback.textContent='인증 메일을 확인해 주세요. 이미 가입한 이메일이라면 로그인해 주세요.';
+        toast('이메일 인증을 완료한 뒤 로그인해 주세요.');
+      }else{closeModal();toast('회원가입을 완료했습니다.')}
+    }else{
+      var state=await authService.signIn(email,password);
+      if(!state.user)throw new Error(state.error||'로그인을 확인하지 못했습니다. 다시 시도해 주세요.');
+      closeModal();toast(state.error||'로그인했습니다.');
+      if(state.admin){adminRequested=false;if(location.hash==='#/admin')route();else location.hash='#/admin'}
+      else if(adminRequested){adminRequested=false;toast('이 계정에는 관리자 권한이 없습니다.')}
+    }
+  }catch(error){if(f.isConnected)feedback.textContent=error.message}
+  finally{if(f.isConnected){delete f.dataset.busy;button.disabled=false}}
+}
+async function signOut(){
+  try{await authService.signOut();adminRequested=false;closeModal();location.hash='#/home';toast('로그아웃했습니다.')}
+  catch(error){toast(error.message)}
 }
 
 /* ===== 관리자 ===== */
-var atab='dash';
+var atab='mem',memberOffset=0,memberPageSize=20,memberRequest=0;
 function months(){var r=[],d=new Date();for(var k=5;k>=0;k--){var x=new Date(d.getFullYear(),d.getMonth()-k,1);r.push((x.getMonth()+1)+'월')}return r}
 function stBtn(kind,x){return '<button type="button" class="st'+((x.status==='신규'||x.status==='확정 대기')?' new':'')+'" data-act="'+kind+'-st" data-id="'+esc(x.id)+'" title="눌러서 상태 변경">'+esc(x.status)+'</button>'}
 function inqTable(list){
@@ -1043,39 +1096,24 @@ function resTable(list){
   return '<div class="tblw"><table class="tbl"><thead><tr><th>날짜</th><th>시간</th><th>이름</th><th>연락처</th><th>인원</th><th>방식</th><th>메모</th><th>상태</th><th></th></tr></thead><tbody>'+
     list.map(function(x){return '<tr><td class="nw">'+esc(x.date)+'</td><td class="nw">'+esc(x.time)+'</td><td class="nw">'+esc(x.name)+'</td><td class="nw">'+esc(x.phone)+'</td><td class="nw">'+esc(x.people)+'</td><td class="nw">'+esc(x.way)+'</td><td>'+(esc(x.memo)||'-')+'</td><td>'+stBtn('res',x)+'</td><td><button type="button" class="mini" data-act="res-del" data-id="'+esc(x.id)+'">삭제</button></td></tr>'}).join('')+'</tbody></table></div>';
 }
-function renderAdmin(){
-  var nNew=D.inquiries.filter(function(x){return x.status==='신규'}).length,nWait=D.reservations.filter(function(x){return x.status==='확정 대기'}).length;
-  var T=[['dash','대시보드'],['inq','문의 내역 '+D.inquiries.length],['res','예약 내역 '+D.reservations.length],['gal','갤러리 '+D.gallery.length],['notice','공지 '+D.notices.length],['copy','메뉴·문구'],['mem','회원 '+D.members.length]];
-  $('#admTabs').innerHTML=T.map(function(t){return '<button type="button" data-act="atab" data-t="'+t[0]+'" class="'+(t[0]===atab?'on':'')+'">'+t[1]+'</button>'}).join('');
-  var h='';
-  if(atab==='dash'){
-    var vals=D.stats.monthly.concat([D.stats.monthInq]),mx=Math.max.apply(null,vals),ml=months();
-    var sorted=D.reservations.slice().sort(function(a,b){return (a.date+a.time).localeCompare(b.date+b.time)});
-    h='<div class="stats"><div class="stat"><span class="label">이번 달 방문자</span><b>'+D.stats.visitors.toLocaleString('ko-KR')+'</b><em>지난달보다 12% 증가</em></div>'+
-      '<div class="stat"><span class="label">이번 달 문의</span><b>'+D.stats.monthInq+'</b><em>신규 '+nNew+'건 미확인</em></div>'+
-      '<div class="stat"><span class="label">예약 확정 대기</span><b>'+nWait+'</b><em>전체 예약 '+D.reservations.length+'건</em></div>'+
-      '<div class="stat"><span class="label">상담 → 계약</span><b>'+esc(D.stats.conv)+'</b><em>최근 6개월 기준</em></div></div>'+
-      '<div class="sub-h"><div><span class="label">Monthly inquiries</span><p class="h3" style="margin-top:6px">월별 문의 건수</p></div></div>'+
-      '<div class="bars">'+vals.map(function(v,k){return '<div class="'+(k===vals.length-1?'cur':'')+'" style="height:'+Math.round(v/mx*100)+'%"><em>'+v+'</em><span>'+ml[k]+'</span></div>'}).join('')+'</div>'+
-      '<div class="sub-h"><p class="h3">최근 문의</p><button type="button" class="tlink" data-act="atab" data-t="inq">전체 보기 <i class="ar"></i></button></div>'+inqTable(D.inquiries.slice(0,3))+
-      '<div class="sub-h"><p class="h3">다가오는 예약</p><button type="button" class="tlink" data-act="atab" data-t="res">전체 보기 <i class="ar"></i></button></div>'+resTable(sorted.slice(0,3));
-  } else if(atab==='inq'){ h='<p class="hint">상태를 누르면 신규 → 처리중 → 완료 순서로 바뀝니다.</p>'+inqTable(D.inquiries);
-  } else if(atab==='res'){ h='<p class="hint">상태를 누르면 확정 대기 ↔ 확정이 바뀝니다.</p>'+resTable(D.reservations.slice().sort(function(a,b){return (a.date+a.time).localeCompare(b.date+b.time)}));
-  } else if(atab==='gal'){
-    h='<form id="f-upload" class="form-max" novalidate><div class="row2"><label class="field"><span>사진 제목</span><input class="inp" name="title" placeholder="예: 광안리 주택 거실"></label><label class="field"><span>지역</span><input class="inp" name="place" placeholder="Busan · Suyeong"></label></div>'+
-      '<div class="filebox"><input type="file" name="file" accept="image/*" multiple aria-label="사진 선택"><span class="hint" style="margin:0">여러 장 선택 가능 · 자동으로 줄여서 저장합니다</span></div><button class="btn btn-fill" type="submit">사진 올리기</button></form>'+
-      '<div class="adm-gal">'+D.gallery.map(function(it){return '<div>'+phHTML(it,'r45','')+'<span class="t">'+esc(it.title)+'</span><span class="loc">'+esc(it.place)+'</span><button type="button" class="mini" data-act="gal-del" data-id="'+esc(it.id)+'">삭제</button></div>'}).join('')+'</div>';
-  } else if(atab==='notice'){
-    h='<form id="f-notice" class="form-max" novalidate><div class="row2"><label class="field"><span>분류</span><select class="inp" name="tag"><option>공지</option><option>안내</option><option>소식</option></select></label><label class="field"><span>제목</span><input class="inp" name="title"></label></div><label class="field"><span>내용</span><textarea class="inp" name="body"></textarea></label><button class="btn btn-fill" type="submit">공지 등록</button></form>'+
-      '<div class="tblw" style="margin-top:56px"><table class="tbl"><thead><tr><th>날짜</th><th>분류</th><th>제목</th><th></th></tr></thead><tbody>'+D.notices.map(function(n){return '<tr><td class="nw">'+esc(n.date)+'</td><td class="nw">'+esc(n.tag)+'</td><td>'+esc(n.title)+'</td><td><button type="button" class="mini" data-act="notice-del" data-id="'+esc(n.id)+'">삭제</button></td></tr>'}).join('')+'</tbody></table></div>';
-  } else if(atab==='copy'){
-    h='<form id="f-copy" class="form-max" novalidate><span class="label">메인 화면 문구</span><div class="row2" style="margin-top:12px"><label class="field"><span>슬로건 첫 줄</span><input class="inp" name="heroL1" value="'+esc(D.copy.heroL1)+'"></label><label class="field"><span>슬로건 둘째 줄</span><input class="inp" name="heroL2" value="'+esc(D.copy.heroL2)+'"></label></div>'+
-      '<label class="field"><span>슬로건 아래 설명 (줄바꿈 가능)</span><textarea class="inp" name="heroSub" style="min-height:90px">'+esc(D.copy.heroSub)+'</textarea></label><label class="field"><span>대표 전화</span><input class="inp" name="phone" value="'+esc(D.copy.phone)+'"></label>'+
-      '<span class="label" style="margin-top:24px">메뉴 이름</span><div class="row2" style="margin-top:12px">'+D.menu.map(function(m,k){return '<label class="field"><span>메뉴 '+(k+1)+'</span><input class="inp" name="menu'+k+'" value="'+esc(m)+'"></label>'}).join('')+'</div><button class="btn btn-fill" type="submit">저장하기</button></form>';
-  } else if(atab==='mem'){
-    h='<div class="tblw"><table class="tbl"><thead><tr><th>가입일</th><th>이름</th><th>아이디</th><th>이메일</th></tr></thead><tbody>'+D.members.map(function(m){return '<tr><td class="nw">'+esc(m.joined)+'</td><td class="nw">'+esc(m.name)+'</td><td class="nw">'+esc(m.userid)+'</td><td>'+esc(m.email)+'</td></tr>'}).join('')+'</tbody></table></div>';
+async function renderAdmin(){
+  if(!S.ready||!S.admin)return;
+  var current=++memberRequest;
+  $('#admTabs').innerHTML='<button type="button" class="on">회원 목록</button>';
+  $('#admBody').innerHTML='<p class="hint" role="status">회원 목록을 불러오는 중입니다.</p>';
+  try{
+    var members=await authService.listMembers(memberOffset,memberPageSize);
+    if(current!==memberRequest||!S.admin)return;
+    if(!members.length&&memberOffset>0){memberOffset=Math.max(0,memberOffset-memberPageSize);renderAdmin();return}
+    var total=members.length?Number(members[0].total_count):0;
+    var date=function(value){if(!value)return '—';var d=new Date(value);return isNaN(d.getTime())?'—':d.toLocaleString('ko-KR')};
+    $('#admBody').innerHTML='<div class="sub-h"><p class="h3">가입 회원 '+total.toLocaleString('ko-KR')+'명</p><button type="button" class="tlink" data-act="members-refresh">새로고침</button></div>'+
+      (members.length?'<div class="tblw"><table class="tbl"><thead><tr><th>가입일</th><th>이름</th><th>이메일</th><th>이메일 인증</th><th>최근 로그인</th></tr></thead><tbody>'+members.map(function(m){return '<tr><td class="nw">'+esc(date(m.joined_at))+'</td><td>'+esc(m.display_name||'—')+'</td><td>'+esc(m.email||'—')+'</td><td class="nw">'+(m.confirmed_at?'인증 완료':'인증 대기')+'</td><td class="nw">'+esc(date(m.last_sign_in_at))+'</td></tr>'}).join('')+'</tbody></table></div>':'<p class="empty">가입한 회원이 없습니다.</p>')+
+      '<div class="sub-h"><button class="btn btn-line" type="button" data-act="members-prev" '+(memberOffset===0?'disabled':'')+'>이전</button><span class="hint">'+(total?Math.floor(memberOffset/memberPageSize)+1:1)+' / '+Math.max(1,Math.ceil(total/memberPageSize))+'</span><button class="btn btn-line" type="button" data-act="members-next" '+(memberOffset+memberPageSize>=total?'disabled':'')+'>다음</button></div>';
+  }catch(error){
+    if(current!==memberRequest||!S.admin)return;
+    $('#admBody').innerHTML='<p class="hint" role="alert">'+esc(error.message)+'</p><button type="button" class="btn btn-line" data-act="members-refresh">다시 시도</button>';
   }
-  $('#admBody').innerHTML=h; renderPh($('#admBody'));
 }
 function resizeImg(file){
   return new Promise(function(res,rej){
@@ -1083,16 +1121,6 @@ function resizeImg(file){
     fr.onload=function(){var im=new Image();im.onload=function(){var m=1200,w=im.width,hh=im.height,s=Math.min(1,m/Math.max(w,hh));var c=document.createElement('canvas');c.width=R(w*s);c.height=R(hh*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.8))};im.onerror=rej;im.src=fr.result};
     fr.onerror=rej; fr.readAsDataURL(file);
   });
-}
-
-/* ===== 데모 초기화 ===== */
-function resetDemo(){
-  if(!window.confirm('데모 데이터를 처음 상태로 되돌릴까요?\n(올린 사진, 문의, 예약, 로그인 상태가 모두 초기화됩니다)'))return;
-  D=seed(); save(); S={user:null,admin:false}; saveS(); selTime=''; atab='dash'; ctab='inquiry';
-  $$('form.cpanel').forEach(function(f){f.reset()}); renderTimes();
-  renderMenu(); renderAuth(); closeModal();
-  if(location.hash==='#/home'||location.hash==='')route(); else location.hash='#/home';
-  toast('데모 데이터를 처음 상태로 되돌렸습니다.');
 }
 
 /* ===== 클릭 처리 ===== */
@@ -1105,11 +1133,10 @@ document.addEventListener('click',function(e){
   switch(act){
     case 'burger': setDrawer(!drawerOpen); break;
     case 'auth':
-      if(S.user){S.user=null;saveS();renderAuth();toast('로그아웃했습니다.')} else {if(drawerOpen)setDrawer(false);openAuth('login')}
+      if(S.user){signOut()}else{adminRequested=false;if(drawerOpen)setDrawer(false);openAuth('login')}
       break;
     case 'auth-tab': openAuth(a.dataset.m); break;
-    case 'demo-login': loginAs(D.members[0]||{name:'체험 회원',userid:'demo'}); break;
-    case 'close': closeModal(); break;
+    case 'close': adminRequested=false;closeModal(); break;
     case 'back': goBack(); break;
     case 'rev': ri=(ri+(+a.dataset.d)+REVIEWS.length)%REVIEWS.length; showReview(true); break;
     case 'lightbox': lbIdx=Math.max(0,D.gallery.findIndex(function(g){return g.id===id})); drawLightbox(); break;
@@ -1122,10 +1149,11 @@ document.addEventListener('click',function(e){
       e.preventDefault();
       if(KAKAO_URL){window.open(KAKAO_URL,'_blank','noopener')} else toast('카카오톡 채널은 준비 중입니다. 문의하기 페이지를 이용해 주세요.');
       break;
-    case 'reset': resetDemo(); break;
     case 'admin-entry': if(S.admin)location.hash='#/admin'; else askAdmin(); break;
-    case 'admin-fill': var p=$('#f-admin [name="pw"]'); if(p){p.value=ADMIN_PW;p.focus()} break;
-    case 'admin-out': S.admin=false; saveS(); location.hash='#/home'; toast('관리자 모드를 종료했습니다.'); break;
+    case 'admin-out': signOut(); break;
+    case 'members-refresh': memberOffset=0;renderAdmin();break;
+    case 'members-prev': memberOffset=Math.max(0,memberOffset-memberPageSize);renderAdmin();break;
+    case 'members-next': memberOffset+=memberPageSize;renderAdmin();break;
     case 'atab': atab=a.dataset.t; renderAdmin(); break;
     case 'inq-st':
       D.inquiries.forEach(function(x){if(x.id===id)x.status={'신규':'처리중','처리중':'완료','완료':'신규'}[x.status]||'신규'}); save(); renderAdmin(); break;
@@ -1163,22 +1191,8 @@ document.addEventListener('submit',function(e){
       D.reservations.push({id:uid('r'),name:val(f,'name'),phone:val(f,'phone'),date:val(f,'date'),time:selTime,people:val(f,'people'),way:val(f,'way'),memo:val(f,'memo'),status:'확정 대기'});
       if(save()){toast(prettyDate(val(f,'date'))+' '+selTime+' 상담 예약을 접수했습니다. 확정 문자를 보내 드립니다.');f.reset();selTime='';renderTimes();f.date.min=addDays(1)}
       break;
-    case 'f-login':
-      var m=D.members.filter(function(x){return x.userid===val(f,'id')&&x.pw===val(f,'pw')})[0];
-      if(m)loginAs(m); else toast('아이디 또는 비밀번호를 확인해 주세요. (체험: demo / demo1234)');
-      break;
-    case 'f-signup':
-      if(!val(f,'name')||!val(f,'id'))return toast('이름과 아이디를 입력해 주세요.');
-      if(!/^\S+@\S+\.\S+$/.test(val(f,'email')))return toast('이메일 형식을 확인해 주세요.');
-      if(val(f,'pw').length<4)return toast('비밀번호는 4자 이상 입력해 주세요.');
-      if(D.members.some(function(x){return x.userid===val(f,'id')}))return toast('이미 사용 중인 아이디입니다.');
-      var nm={id:uid('m'),name:val(f,'name'),userid:val(f,'id'),pw:val(f,'pw'),email:val(f,'email'),joined:ymd(new Date())};
-      D.members.push(nm); if(save())loginAs(nm);
-      break;
-    case 'f-admin':
-      if(val(f,'pw')===ADMIN_PW){S.admin=true;saveS();closeModal();atab='dash';if(location.hash==='#/admin')route();else location.hash='#/admin';toast('관리자 모드로 들어왔습니다.')}
-      else toast('비밀번호가 맞지 않습니다.');
-      break;
+    case 'f-login': submitAuth(f,false);break;
+    case 'f-signup': submitAuth(f,true);break;
     case 'f-notice':
       if(!val(f,'title')||!val(f,'body'))return toast('제목과 내용을 입력해 주세요.');
       D.notices.unshift({id:uid('n'),tag:val(f,'tag'),title:val(f,'title'),body:val(f,'body'),date:ymd(new Date())});
@@ -1207,6 +1221,7 @@ document.addEventListener('submit',function(e){
 renderMenu(); renderAuth(); renderCopy(); renderTimes();
 $('#f-reserve').date.min=addDays(1);
 route();
+authService.initialize(authStateChanged);
 })();
 </script>
 </body>

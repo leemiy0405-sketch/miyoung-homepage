@@ -82,7 +82,7 @@ ul,ol{list-style:none}
 @media(max-width:960px){.menu,.nav-auth{display:none}.burger{display:block}}
 
 /* ===== 히어로 ===== */
-.hero{position:relative;min-height:88vh;min-height:88svh;display:flex;flex-direction:column;justify-content:center;padding:140px 0 72px;border-bottom:1px solid var(--line)}
+.hero{position:relative;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:140px 0 72px;border-bottom:1px solid var(--line)}
 .hero-title{font-family:var(--serif);font-weight:400;font-size:clamp(46px,7vw,108px);line-height:1.04;letter-spacing:-.025em;margin-top:26px}
 .hero-title em{font-style:normal;color:var(--accent)}
 .hero-sub{margin-top:32px;font-size:16px;line-height:1.9;color:var(--ink-2);max-width:32em}
@@ -103,7 +103,7 @@ ul,ol{list-style:none}
 .fact .h3{margin-bottom:12px}
 @media(max-width:760px){.fact{grid-template-columns:1fr;gap:18px}}
 
-.quote{background:var(--surface)}
+.quote .wrap{border-top:1px solid var(--line);padding-top:clamp(48px,6vw,80px)}
 .quote blockquote{font-family:var(--serif);font-size:clamp(28px,3.6vw,48px);line-height:1.4;letter-spacing:-.02em;max-width:22em;margin-top:24px}
 .quote .sign{margin-top:32px}
 
@@ -273,79 +273,6 @@ select.inp{background:linear-gradient(45deg,transparent 50%,var(--ink) 50%) righ
       <div class="hero-foot"><span class="label">CNP교육컨설팅 대표 · Busan, Korea</span><span class="label">Since 2019</span></div>
     </div>
   </div>
-
-  <section class="sec">
-    <div class="wrap">
-      <div class="g57 al-end rv">
-        <div><span class="label">Track record</span><h2 class="h2">현장에서<br>쌓아 온 숫자</h2></div>
-        <p class="body">부산·경남을 중심으로 전국에 출강합니다. 2026년 상반기에만 대학·공공기관·기업과 47개 주요 과정을 진행했습니다.</p>
-      </div>
-      <ol class="facts">
-        <li class="fact rv">
-          <div><span class="label">01 — 2026 상반기</span><span class="num">47<small>개 과정</small></span></div>
-          <div><h3 class="h3">대학·공공기관·기업 주요 과정</h3><p class="body">취업캠프, AI 교수법, 사전직무교육, 면접 특강까지 반년 동안 진행한 주요 과정 수입니다.</p></div>
-        </li>
-        <li class="fact rv">
-          <div><span class="label">02 — 미래내일 일경험</span><span class="num">3<small>년 연속</small></span></div>
-          <div><h3 class="h3">사전직무교육 대표 사업</h3><p class="body">미래내일 일경험 사전직무교육을 3년 연속 맡았고, 부산인력개발원 ESG형 사전직무교육 80시간을 운영했습니다.</p></div>
-        </li>
-        <li class="fact rv">
-          <div><span class="label">03 — 대학 정규 교과</span><span class="num">20<small>편</small></span></div>
-          <div><h3 class="h3">동명대학교 취업 LMS 강의</h3><p class="body">동명대 취업 LMS 20편을 제작했고, 동의대학교 '미래직업과 진로설계'(2학점) 정규 교과를 담당합니다.</p></div>
-        </li>
-      </ol>
-    </div>
-  </section>
-
-  <section class="sec quote">
-    <div class="wrap rv">
-      <span class="label">Philosophy</span>
-      <blockquote>“교육은 사람을 설득하는 일이 아니라, 가능성을 꺼내 주는 일입니다.”</blockquote>
-      <p class="sign">CNP교육컨설팅 대표<b>이미영</b></p>
-      <div class="btns"><a href="#/about" class="tlink">소개 · 경력 보기</a></div>
-    </div>
-  </section>
-
-  <section class="sec">
-    <div class="wrap">
-      <div class="sec-head rv">
-        <div><span class="label">Programs</span><h2 class="h2">이런 강의를 합니다</h2></div>
-        <a href="#/programs" class="tlink">전체 강의 분야</a>
-      </div>
-      <div class="cards rv">
-        <a class="card" href="#/programs"><span class="label">01</span><h3 class="h3">취업·진로 캠프</h3><p class="body">대학 취업캠프·진로캠프 기획과 총괄, 공기업 취업특화 과정</p></a>
-        <a class="card" href="#/programs"><span class="label">02</span><h3 class="h3">생성형 AI 교육</h3><p class="body">교수자 AI 교수법, AI 디자인씽킹 캠프, 기업인 AI 역량강화</p></a>
-        <a class="card" href="#/programs"><span class="label">03</span><h3 class="h3">자기소개서·면접</h3><p class="body">자기소개서 작성법, PT면접, 이미지메이킹과 면접 코칭</p></a>
-        <a class="card" href="#/programs"><span class="label">04</span><h3 class="h3">강사 양성·팀빌딩</h3><p class="body">취업진로강사 양성과정, 보드게임·방탈출형 팀빌딩</p></a>
-      </div>
-    </div>
-  </section>
-
-  <section class="sec band">
-    <div class="wrap rv">
-      <span class="label">With</span>
-      <h2 class="h2">함께한 기관</h2>
-      <ul class="clients">
-        <li>부산대학교</li><li>부경대학교</li><li>동명대학교</li><li>동의대학교</li><li>창원대학교</li><li>동서대학교</li><li>인제대학교</li><li>영산대학교</li><li>울산과학대학교</li><li>대구가톨릭대학교</li><li>영남이공대학교</li><li>부산경제진흥원</li><li>부산인력개발원</li><li>부산고용센터</li><li>부산관광공사</li><li>한국가스공사</li><li>김해시청</li><li>양산시청년센터</li><li>경남경영자총협회</li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="sec cta">
-    <div class="wrap">
-      <div class="cta-in g75 al-end rv">
-        <div>
-          <span class="label">Contact</span>
-          <h2 class="h2">강의 의뢰 · 상담</h2>
-          <a class="tel" href="tel:01045662272">010-4566-2272</a>
-        </div>
-        <div>
-          <p class="body">교육 대상, 인원, 희망 일정을 알려 주시면 과정 구성을 제안드립니다. 부산·경남 기반으로 전국 출강합니다.</p>
-          <div class="btns"><a href="#/contact" class="btn btn-fill">문의 남기기</a></div>
-        </div>
-      </div>
-    </div>
-  </section>
 </section>
 
 <!-- ===================== 소개 ===================== -->
@@ -366,6 +293,13 @@ select.inp{background:linear-gradient(45deg,transparent 50%,var(--ink) 50%) righ
         <p class="body">방송국 라디오제작국에서 사람의 이야기를 듣고 전하는 일로 시작해, 직무교육 교수와 대학 강단을 거쳐 2019년 CNP교육컨설팅을 세웠습니다. CNP는 Career · Networking · People의 약자로, 사람의 커리어와 네트워크를 이어 주는 동반자가 되겠다는 다짐을 담고 있습니다.</p>
         <p class="sign">CNP교육컨설팅 대표<b>이미영</b></p>
       </div>
+    </div>
+  </section>
+  <section class="sec pt0 quote">
+    <div class="wrap rv">
+      <span class="label">Philosophy</span>
+      <blockquote>“교육은 사람을 설득하는 일이 아니라, 가능성을 꺼내 주는 일입니다.”</blockquote>
+      <p class="sign">CNP교육컨설팅 대표<b>이미영</b></p>
     </div>
   </section>
   <section class="sec band">
@@ -511,6 +445,15 @@ select.inp{background:linear-gradient(45deg,transparent 50%,var(--ink) 50%) righ
         <li>동명대학교 기업탐방 대표자와의 토크콘서트 <span>3회</span></li>
         <li>부울경대학연합 토크콘서트 진행</li>
       </ul></div>
+    </div>
+  </section>
+  <section class="sec band">
+    <div class="wrap rv">
+      <span class="label">With</span>
+      <h2 class="h2">함께한 기관</h2>
+      <ul class="clients">
+        <li>부산대학교</li><li>부경대학교</li><li>동명대학교</li><li>동의대학교</li><li>창원대학교</li><li>동서대학교</li><li>인제대학교</li><li>영산대학교</li><li>울산과학대학교</li><li>대구가톨릭대학교</li><li>영남이공대학교</li><li>부산경제진흥원</li><li>부산인력개발원</li><li>부산고용센터</li><li>부산관광공사</li><li>한국가스공사</li><li>김해시청</li><li>양산시청년센터</li><li>경남경영자총협회</li>
+      </ul>
     </div>
   </section>
 </section>
